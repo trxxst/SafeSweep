@@ -1,0 +1,21 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!--
+    Builds SafeSweep-x64.msi from a self-contained publish folder.
+    Built by scripts/build-release.ps1; not part of SafeSweep.sln on purpose
+    (it needs the publish output first).
+  -->
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputName>SafeSweep-x64</OutputName>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <AppPublishDir Condition="'$(AppPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\app\</AppPublishDir>
+    <!-- A -p: value cannot be reassigned, so the normalised copy gets its own name. -->
+    <AppPayloadDir>$([MSBuild]::EnsureTrailingSlash('$(AppPublishDir)'))</AppPayloadDir>
+    <DefineConstants>ProductVersion=$(ProductVersion);AppPublishDir=$(AppPayloadDir)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>

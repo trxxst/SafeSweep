@@ -1,0 +1,71 @@
+name: Bug report
+description: Something in SafeSweep does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem.
+
+        **If SafeSweep deleted, quarantined or offered something it should have protected, do not file it here.** Report it privately instead: see [SECURITY.md](https://github.com/trxxst/SafeSweep/blob/main/SECURITY.md).
+
+        **Privacy:** SafeSweep's logs and result lists contain full file paths, which usually include your Windows user name and the names of your files. Before pasting anything, replace private parts (for example `C:\Users\<name>\` becomes `C:\Users\me\`). Never attach files from your quarantine.
+  - type: input
+    id: version
+    attributes:
+      label: SafeSweep version
+      description: Shown at the bottom of the sidebar, for example v1.0.0.
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: build
+    attributes:
+      label: Which download do you use?
+      options:
+        - Installer (SafeSweep-Setup-x64.exe)
+        - MSI (SafeSweep-x64.msi)
+        - Portable (SafeSweep-Portable-x64.exe)
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Press Win+R, type `winver` and press Enter.
+      placeholder: Windows 11 24H2 (build 26100)
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what SafeSweep did instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Scan & Clean
+        2. Click Quick Scan
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines (optional)
+      description: From Logs in SafeSweep or `%LOCALAPPDATA%\SafeSweep\Logs`. Remove private paths first.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I removed user names and other private information from everything above.
+          required: true
+        - label: This is not about SafeSweep deleting something it should protect (those go to SECURITY.md).
+          required: true

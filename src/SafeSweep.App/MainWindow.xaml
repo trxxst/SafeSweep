@@ -1,0 +1,150 @@
+<ui:FluentWindow x:Class="SafeSweep.App.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:vm="clr-namespace:SafeSweep.App.ViewModels"
+                 xmlns:views="clr-namespace:SafeSweep.App.Views"
+                 xmlns:conv="clr-namespace:SafeSweep.App.Converters"
+                 mc:Ignorable="d"
+                 d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+                 Title="SafeSweep"
+                 Width="1380"
+                 Height="880"
+                 MinWidth="940"
+                 MinHeight="540"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round"
+                 WindowStartupLocation="CenterScreen">
+
+    <ui:FluentWindow.Resources>
+        <conv:BoolToGridLengthConverter x:Key="NavWidth" />
+
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><views:DashboardView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CleanerViewModel}"><views:CleanerView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ReviewToolViewModel}"><views:ReviewToolView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:StartupViewModel}"><views:StartupView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:QuarantineViewModel}"><views:QuarantineView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HistoryViewModel}"><views:HistoryView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ScheduleViewModel}"><views:ScheduleView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WindowsToolsViewModel}"><views:WindowsToolsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProtectionViewModel}"><views:ProtectionView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LogsViewModel}"><views:LogsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+
+        <Style x:Key="NavItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Margin" Value="0,0" />
+            <Setter Property="ToolTip" Value="{Binding Title}" />
+            <Setter Property="ToolTipService.IsEnabled" Value="{Binding DataContext.IsCompactNav, RelativeSource={RelativeSource AncestorType=Window}}" />
+            <Setter Property="ToolTipService.Placement" Value="Right" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsHeader}" Value="True">
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="Focusable" Value="False" />
+                    <Setter Property="Padding" Value="10,10,10,0" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="SafeSweep">
+            <ui:TitleBar.Icon>
+                <ui:SymbolIcon Symbol="ShieldCheckmark24" />
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding IsCompactNav, Converter={StaticResource NavWidth}, ConverterParameter=68|248}" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <DockPanel Grid.Column="0" Margin="10,4,6,12">
+                <!-- Full status card -->
+                <Border DockPanel.Dock="Bottom" Style="{StaticResource CardBorder}" Padding="12" Margin="0,8,0,0"
+                        Visibility="{Binding IsCompactNav, Converter={StaticResource InvBoolVis}}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ShieldKeyhole24" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding ElevationText}" VerticalAlignment="Center" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <ui:Button Margin="0,8,0,0" HorizontalAlignment="Stretch"
+                                   ToolTip="Administrator rights are only needed for system locations (Windows temp, Windows Update cache, system dumps and logs)."
+                                   Content="Restart as administrator"
+                                   Icon="{ui:SymbolIcon ShieldLock24}"
+                                   Command="{Binding RestartAsAdminCommand}"
+                                   Visibility="{Binding IsElevated, Converter={StaticResource InvBoolVis}}" />
+                        <Border Margin="0,10,0,0" Padding="8,4" CornerRadius="6"
+                                Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                                Visibility="{Binding IsSimulation, Converter={StaticResource BoolVis}}">
+                            <TextBlock Text="Simulation mode: nothing is changed" TextWrapping="Wrap" FontSize="12" />
+                        </Border>
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource Muted}" FontSize="11" Text="{Binding VersionText}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Compact status: icon buttons only -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0" HorizontalAlignment="Center"
+                            Visibility="{Binding IsCompactNav, Converter={StaticResource BoolVis}}">
+                    <ui:Button Icon="{ui:SymbolIcon ShieldLock24}" Width="44" Height="36" Padding="0"
+                               ToolTip="Restart as administrator (only needed for system locations)"
+                               AutomationProperties.Name="Restart as administrator"
+                               Command="{Binding RestartAsAdminCommand}"
+                               Visibility="{Binding IsElevated, Converter={StaticResource InvBoolVis}}" />
+                    <Border Margin="0,6,0,0" Width="44" Height="6" CornerRadius="3"
+                            Background="{DynamicResource SystemFillColorCautionBrush}"
+                            ToolTip="Simulation mode: nothing is changed"
+                            Visibility="{Binding IsSimulation, Converter={StaticResource BoolVis}}" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding NavItems}"
+                         SelectedItem="{Binding SelectedNav}"
+                         ItemContainerStyle="{StaticResource NavItemStyle}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         AutomationProperties.Name="Navigation"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:NavItem}">
+                            <Grid>
+                                <!-- Section header (a short divider in compact mode) -->
+                                <Grid Visibility="{Binding IsHeader, Converter={StaticResource BoolVis}}">
+                                    <TextBlock Text="{Binding Title}" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                               Visibility="{Binding DataContext.IsCompactNav, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InvBoolVis}}" />
+                                    <Rectangle Height="1" Width="24" HorizontalAlignment="Left" Margin="2,6,0,0"
+                                               Fill="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                               Visibility="{Binding DataContext.IsCompactNav, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsHeader, Converter={StaticResource InvBoolVis}}">
+                                    <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="18" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis"
+                                               Visibility="{Binding DataContext.IsCompactNav, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InvBoolVis}}" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <!-- Page -->
+            <Border Grid.Column="1" CornerRadius="8,0,0,0"
+                    Background="{DynamicResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1,1,0,0">
+                <ContentControl Content="{Binding CurrentPage}" Focusable="False" />
+            </Border>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

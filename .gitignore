@@ -1,0 +1,59 @@
+# Build output
+bin/
+obj/
+[Bb]uild/
+dist/
+release/
+publish/
+artifacts/
+*.msi
+*.wixpdb
+*.cab
+
+# Test results and coverage
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Logs, temp files, caches
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.swp
+~$*
+.cache/
+
+# IDE and editor state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+.fleet/
+
+# Local configuration and secrets (never commit these)
+.env
+.env.*
+*.pfx
+*.p12
+*.snk
+*.key
+*.pem
+secrets.json
+appsettings.*.local.json
+local.settings.json
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# UI snapshot folder used for manual review (SAFESWEEP_UI_SNAPSHOTS)
+ui-snapshots/

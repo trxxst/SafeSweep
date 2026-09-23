@@ -1,0 +1,113 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+
+jobs:
+  build:
+    name: Build, test and package
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.wixproj', 'Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Restore, format check, build (warnings are errors), unit and UI tests,
+      # publish, MSI, setup program and checksums. On a tag it also checks that
+      # the tag matches the version in Directory.Build.props.
+      - name: Build release
+        shell: pwsh
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $expected = if ($env:REF_TYPE -eq 'tag') { $env:REF_NAME.TrimStart('v') } else { '' }
+          ./scripts/build-release.ps1 -ExpectedVersion $expected
+
+      # Read-only full scan of the runner: nothing offered may lie in a protected location.
+      - name: Integration tests
+        shell: pwsh
+        run: >
+          dotnet test SafeSweep.sln -c Release --no-build --nologo
+          --filter "Category=Integration"
+          --logger "trx;LogFileName=integration.trx"
+          --results-directory artifacts/test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: ignore
+
+      - name: Upload release files
+        uses: actions/upload-artifact@v7
+        with:
+          name: SafeSweep-release
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: Draft GitHub release
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Download release files
+        uses: actions/download-artifact@v8
+        with:
+          name: SafeSweep-release
+          path: dist
+
+      # Creates a DRAFT release so the files and notes can be checked before
+      # publishing. Re-running the workflow for the same tag replaces the files.
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          notes="docs/release-notes/${TAG}.md"
+          if [ ! -f "$notes" ]; then
+            echo "::error::Release notes $notes are missing."
+            exit 1
+          fi
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --draft --verify-tag --title "SafeSweep ${TAG}" --notes-file "$notes"
+          fi

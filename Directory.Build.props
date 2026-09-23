@@ -1,0 +1,32 @@
+<Project>
+  <!--
+    Single source of truth for the release version. The executable's file and
+    product versions, the version shown in the app (Settings > About, sidebar),
+    the installer and the GitHub release tag (v$(VersionPrefix)) all come from
+    here. CI refuses to publish a tag that does not match.
+  -->
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+    <!-- Keep the displayed version clean (no "+commit" suffix). -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Product>SafeSweep</Product>
+    <Company>SafeSweep contributors</Company>
+    <Authors>trxst and SafeSweep contributors</Authors>
+    <Copyright>Copyright (c) 2026 trxst and SafeSweep contributors</Copyright>
+    <Description>Open-source Windows storage cleaner designed around safety, transparency and user control.</Description>
+    <RepositoryUrl>https://github.com/trxxst/SafeSweep</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <NeutralLanguage>en</NeutralLanguage>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

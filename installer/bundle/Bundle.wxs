@@ -1,0 +1,25 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+
+  <!-- The bundle UpgradeCode must never change either. -->
+  <Bundle Name="SafeSweep"
+          Manufacturer="SafeSweep contributors"
+          Copyright="Copyright (c) 2026 trxst and SafeSweep contributors"
+          Version="$(var.ProductVersion)"
+          UpgradeCode="0D8E5A4F-3B7C-4F21-A96E-5C1D2B8E7F40"
+          IconSourceFile="..\..\src\SafeSweep.App\Assets\SafeSweep.ico"
+          AboutUrl="https://github.com/trxxst/SafeSweep"
+          HelpUrl="https://github.com/trxxst/SafeSweep/issues"
+          UpdateUrl="https://github.com/trxxst/SafeSweep/releases">
+
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication LicenseUrl="https://github.com/trxxst/SafeSweep/blob/main/LICENSE"
+                                              Theme="hyperlinkLicense"
+                                              ShowVersion="yes" />
+    </BootstrapperApplication>
+
+    <Chain>
+      <MsiPackage SourceFile="$(var.MsiPath)" />
+    </Chain>
+  </Bundle>
+</Wix>

@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an idea or improvement for SafeSweep.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome. SafeSweep puts not losing data ahead of freeing space, so suggestions that clean more are weighed against the risk of deleting something important.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation, for example "I often have to clean X by hand because ...".
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like SafeSweep to do?
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Could this ever delete something important?
+      description: For new cleaning locations, say who creates the data, whether it is recreated automatically and what is lost if it is removed.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered

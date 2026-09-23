@@ -1,0 +1,146 @@
+<UserControl x:Class="SafeSweep.App.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:SafeSweep.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DashboardViewModel}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Style="{StaticResource PagePadding}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
+                    <TextBlock Text="{Binding Subtitle}" Style="{StaticResource PageSubtitle}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Sparkle24}" Content="Quick Scan" Margin="0,0,8,0" Command="{Binding QuickScanCommand}" />
+                    <ui:Button Icon="{ui:SymbolIcon FolderSearch24}" Content="Full Scan" Command="{Binding FullScanCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Recoverable space -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,20,0,12">
+                <StackPanel>
+                    <TextBlock Text="Recoverable space" Style="{StaticResource SectionTitle}" />
+                    <UniformGrid Columns="3" Margin="0,4,0,8">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="10" Height="10" Margin="0,0,8,0" Fill="{DynamicResource SystemFillColorSuccessBrush}" />
+                                <TextBlock Text="Safe Clean (recommended)" Style="{StaticResource Muted}" FontSize="13" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource BigNumber}" Text="{Binding SafeBytes, Converter={StaticResource Bytes}}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="10" Height="10" Margin="0,0,8,0" Fill="{DynamicResource SystemFillColorCautionBrush}" />
+                                <TextBlock Text="Deep Clean (needs a look)" Style="{StaticResource Muted}" FontSize="13" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource BigNumber}" Text="{Binding DeepBytes, Converter={StaticResource Bytes}}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="10" Height="10" Margin="0,0,8,0" Fill="{DynamicResource SystemFillColorCriticalBrush}" />
+                                <TextBlock Text="Manual Review (your decision)" Style="{StaticResource Muted}" FontSize="13" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource BigNumber}" Text="{Binding ReviewBytes, Converter={StaticResource Bytes}}" />
+                        </StackPanel>
+                    </UniformGrid>
+                    <TextBlock Style="{StaticResource Muted}" Text="{Binding ScanInfo}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Drives -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="Disk usage" Style="{StaticResource SectionTitle}" />
+                    <ItemsControl ItemsSource="{Binding Drives}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:SymbolIcon Symbol="Storage24" FontSize="28" Margin="0,0,12,0" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1">
+                                        <Grid>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding Summary}" HorizontalAlignment="Right" Style="{StaticResource Muted}" FontSize="13" />
+                                        </Grid>
+                                        <ProgressBar Margin="0,6,0,0" Height="8" Maximum="100" Value="{Binding UsedPercent, Mode=OneWay}" />
+                                        <TextBlock Style="{StaticResource Muted}" Margin="0,4,0,0"
+                                                   Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                                   Text="Less than 10% free space left."
+                                                   Visibility="{Binding IsLow, Converter={StaticResource BoolVis}}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Status tiles -->
+            <UniformGrid Grid.Row="3" Columns="3" Margin="-6,0,-6,12">
+                <Border Style="{StaticResource CardBorder}" Margin="6,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="ArchiveArrowBack24" FontSize="20" Margin="0,0,8,0" />
+                            <TextBlock Text="Quarantine" Style="{StaticResource SectionTitle}" Margin="0" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource BigNumber}" FontSize="24" Margin="0,8,0,0" Text="{Binding QuarantineBytes, Converter={StaticResource Bytes}}" />
+                        <TextBlock Style="{StaticResource Muted}" Text="{Binding QuarantineCount, StringFormat={}{0:N0} restorable item(s)}" />
+                        <ui:Button Content="Open quarantine" Margin="0,10,0,0" Command="{Binding OpenQuarantineCommand}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="6,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Delete24" FontSize="20" Margin="0,0,8,0" />
+                            <TextBlock Text="Recycle Bin" Style="{StaticResource SectionTitle}" Margin="0" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource BigNumber}" FontSize="24" Margin="0,8,0,0" Text="{Binding RecycleBinBytes, Converter={StaticResource Bytes}}" />
+                        <TextBlock Style="{StaticResource Muted}" Text="{Binding RecycleBinCount, StringFormat={}{0:N0} item(s) you deleted earlier}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="6,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="History24" FontSize="20" Margin="0,0,8,0" />
+                            <TextBlock Text="Cleaned so far" Style="{StaticResource SectionTitle}" Margin="0" />
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource BigNumber}" FontSize="24" Margin="0,8,0,0" Text="{Binding TotalCleanedBytes, Converter={StaticResource Bytes}}" />
+                        <TextBlock Style="{StaticResource Muted}" Text="{Binding LastClean}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Protection -->
+            <Border Grid.Row="4" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ShieldCheckmark24" FontSize="20" Margin="0,0,8,0" Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                        <TextBlock Text="Protection is active" Style="{StaticResource SectionTitle}" Margin="0" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource Body}" Margin="0,8,0,0" Text="{Binding ProtectionSummary}" />
+                    <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
+                               Text="Windows, Program Files, drivers, boot and recovery data, the Windows Installer cache, registry hives, credentials, browser logins and your personal folders can never be cleaned automatically. Everything uncertain goes to Manual Review and is quarantined instead of deleted." />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

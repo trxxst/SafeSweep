@@ -1,0 +1,111 @@
+<UserControl x:Class="SafeSweep.App.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:SafeSweep.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:HistoryViewModel}">
+    <Grid Style="{StaticResource PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{Binding Subtitle}" Style="{StaticResource PageSubtitle}" />
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" Margin="0,12" LastChildFill="True">
+            <ui:Button DockPanel.Dock="Right" Margin="12,0,0,0" Content="Clear history" Icon="{ui:SymbolIcon Delete24}"
+                       ToolTip="Remove the list of past cleans (quarantined items and log files are kept)"
+                       Command="{Binding ClearCommand}" />
+            <TextBlock VerticalAlignment="Center" FontSize="14" TextTrimming="CharacterEllipsis">
+                <Run Text="Total freed so far: " />
+                <Run FontWeight="SemiBold" Text="{Binding TotalFreed, Mode=OneWay, Converter={StaticResource Bytes}}" />
+            </TextBlock>
+        </DockPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="420" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Style="{StaticResource Muted}" FontSize="14" Margin="0,48,0,0" HorizontalAlignment="Center"
+                       Text="No cleans yet. Every clean, manual or scheduled, will be listed here."
+                       Visibility="{Binding Entries.Count, Converter={StaticResource InvCountVis}}" Panel.ZIndex="1" />
+            <DataGrid Grid.Column="0" Style="{StaticResource SafeDataGrid}" ItemsSource="{Binding Entries}" SelectedItem="{Binding Selected}" SelectionMode="Single" AutomationProperties.Name="Cleaning history">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="When" Binding="{Binding StartedLocal, StringFormat=g}" Width="150" MinWidth="150" SortMemberPath="StartedUtc" ElementStyle="{StaticResource GridText}" />
+                    <DataGridTextColumn Header="Trigger" Binding="{Binding Trigger}" Width="96" MinWidth="96" ElementStyle="{StaticResource GridText}" />
+                    <DataGridTemplateColumn Header="Kind" Width="92" MinWidth="92" SortMemberPath="Simulation">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid VerticalAlignment="Center" Margin="4,0,0,0">
+                                    <Border Style="{StaticResource Badge}" Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                                            Visibility="{Binding Simulation, Converter={StaticResource BoolVis}}"
+                                            ToolTip="Simulation mode: nothing was changed">
+                                        <TextBlock Text="Preview" FontSize="12" />
+                                    </Border>
+                                    <Border Style="{StaticResource Badge}" Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                            Visibility="{Binding Simulation, Converter={StaticResource InvBoolVis}}">
+                                        <TextBlock Text="Clean" FontSize="12" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Result" Binding="{Binding Outcome}" Width="*" MinWidth="220" SortMemberPath="BytesFreed" ElementStyle="{StaticResource GridText}" />
+                    <DataGridTextColumn Header="Items" Binding="{Binding ItemsRequested}" Width="70" MinWidth="70" ElementStyle="{StaticResource GridText}" />
+                    <DataGridTextColumn Header="Skipped" Binding="{Binding ItemsSkipped}" Width="80" MinWidth="80" ElementStyle="{StaticResource GridText}" />
+                    <DataGridTextColumn Header="Blocked" Binding="{Binding ItemsBlocked}" Width="80" MinWidth="80" ElementStyle="{StaticResource GridText}" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}" Visibility="{Binding Selected, Converter={StaticResource NullVis}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="{Binding Selected.StartedLocal, StringFormat=Clean on {0:f}}" />
+                        <TextBlock Style="{StaticResource Body}">
+                            <Run Text="Deleted: " /><Run Text="{Binding Selected.ItemsDeleted, Mode=OneWay}" />
+                            <Run Text=" | Quarantined: " /><Run Text="{Binding Selected.ItemsQuarantined, Mode=OneWay}" />
+                            <Run Text=" | Recycled: " /><Run Text="{Binding Selected.ItemsRecycled, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource Body}" Margin="0,4,0,0" Text="{Binding Selected.Outcome}" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,2,0,0" Text="This run was cancelled before it finished."
+                                   Visibility="{Binding Selected.Cancelled, Converter={StaticResource BoolVis}}" />
+                        <TextBlock Text="By category" FontWeight="SemiBold" Margin="0,12,0,4" />
+                        <ItemsControl ItemsSource="{Binding Selected.Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2">
+                                        <TextBlock Text="{Binding CategoryName}" />
+                                        <TextBlock HorizontalAlignment="Right" Style="{StaticResource Muted}">
+                                            <Run Text="{Binding Items, Mode=OneWay}" /><Run Text=" items, " /><Run Text="{Binding Bytes, Mode=OneWay, Converter={StaticResource Bytes}}" />
+                                        </TextBlock>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Skipped or refused" FontWeight="SemiBold" Margin="0,12,0,4"
+                                   Visibility="{Binding Selected.Problems.Count, Converter={StaticResource CountVis}}" />
+                        <ItemsControl ItemsSource="{Binding Selected.Problems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,2">
+                                        <TextBlock Text="{Binding Path}" FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Reason}" Style="{StaticResource Muted}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

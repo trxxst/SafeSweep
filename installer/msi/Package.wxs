@@ -1,0 +1,72 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <!-- The UpgradeCode must never change: it is how new versions replace old ones. -->
+  <Package Name="SafeSweep"
+           Manufacturer="SafeSweep contributors"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="6F1B3C52-8D0A-4E6B-9C2D-2A7E5F4B1C83"
+           Scope="perMachine"
+           Compressed="yes"
+           Language="1033">
+
+    <SummaryInformation Description="SafeSweep $(var.ProductVersion) - safe Windows storage cleaner" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of SafeSweep is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="SafeSweepIcon" SourceFile="..\..\src\SafeSweep.App\Assets\SafeSweep.ico" />
+    <Property Id="ARPPRODUCTICON" Value="SafeSweepIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/trxxst/SafeSweep" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/trxxst/SafeSweep/issues" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/trxxst/SafeSweep/releases" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <ui:WixUI Id="WixUI_Minimal" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="SafeSweep" />
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="SafeSweep" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentGroupRef Id="AppFiles" />
+    </Feature>
+
+    <Component Id="MainExecutable" Directory="INSTALLFOLDER">
+      <File Id="SafeSweepExe" Source="$(var.AppPublishDir)SafeSweep.exe" KeyPath="yes" />
+    </Component>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.AppPublishDir)**">
+        <Exclude Files="$(var.AppPublishDir)SafeSweep.exe" />
+      </Files>
+    </ComponentGroup>
+
+    <!-- Windows Installer requires an HKCU key path for a non-advertised shortcut (ICE43/ICE57). -->
+    <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder">
+      <Shortcut Id="SafeSweepStartMenu"
+                Name="SafeSweep"
+                Description="Safe Windows storage cleaner"
+                Target="[INSTALLFOLDER]SafeSweep.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RegistryValue Root="HKCU" Key="Software\SafeSweep\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <!--
+      On uninstall, remove the scheduled-clean task if the user created one
+      (SafeSweep does it itself; failures are ignored). SafeSweep's data folder
+      (%LOCALAPPDATA%\SafeSweep) is deliberately NOT removed: the quarantine in
+      it can hold the user's files.
+    -->
+    <CustomAction Id="RemoveScheduledTask"
+                  FileRef="SafeSweepExe"
+                  ExeCommand="--remove-schedule"
+                  Execute="deferred"
+                  Impersonate="yes"
+                  Return="ignore" />
+    <InstallExecuteSequence>
+      <Custom Action="RemoveScheduledTask" Before="RemoveFiles" Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>
