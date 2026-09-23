@@ -117,6 +117,48 @@ public class UiTests : IDisposable
     }
 
     [Fact]
+    public void Test_windows_get_their_full_size_even_when_larger_than_the_screen()
+    {
+        UiTestHost.Run(() =>
+        {
+            double width = SystemParameters.VirtualScreenWidth + 800;
+            double height = SystemParameters.VirtualScreenHeight + 600;
+
+            // Control: Windows caps an ordinary window at the screen size. This is
+            // what made the size tests run shrunk on a build server's small screen.
+            // An explicit empty style keeps the app's implicit window style (which
+            // changes AllowsTransparency after showing) out of a bare Window.
+            var plain = new Window
+            {
+                Style = new Style(typeof(Window)),
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                Left = -20000,
+                Top = 0,
+                Width = width,
+                Height = height,
+                ShowInTaskbar = false,
+            };
+            plain.Show();
+            plain.UpdateLayout();
+            double plainWidth = plain.ActualWidth;
+            plain.Close();
+            Assert.True(plainWidth < width - 1, $"control: an ordinary window got {plainWidth}px of {width}px");
+
+            var sized = new Window { Style = new Style(typeof(Window)) };
+            UiTestHost.ShowAtSize(sized, width, height);
+            try
+            {
+                Assert.Equal(width, sized.ActualWidth, 0.5);
+                Assert.Equal(height, sized.ActualHeight, 0.5);
+            }
+            finally
+            {
+                sized.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void Header_select_all_tracks_partial_selection_and_respects_filters()
     {
         UiTestHost.Run(async () =>
@@ -231,19 +273,12 @@ public class UiTests : IDisposable
 
     private static MainWindow OpenWindow(MainViewModel main, int width, int height)
     {
-        var window = new MainWindow
-        {
-            DataContext = main,
-            WindowState = WindowState.Normal,
-            WindowStartupLocation = WindowStartupLocation.Manual,
-            Left = -10000,
-            Top = 0,
-            Width = width,
-            Height = height,
-            ShowInTaskbar = false,
-        };
-        window.Show();
-        window.UpdateLayout();
+        var window = new MainWindow { DataContext = main };
+        UiTestHost.ShowAtSize(window, width, height);
+
+        // Every size assertion below is meaningless if Windows shrank the window.
+        Assert.Equal(width, window.ActualWidth, 0.5);
+        Assert.Equal(height, window.ActualHeight, 0.5);
         main.UpdateLayoutMode(window.ActualWidth, window.ActualHeight);
         return window;
     }

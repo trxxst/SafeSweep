@@ -1,5 +1,7 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -63,6 +65,61 @@ internal static class UiTestHost
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using FileStream stream = File.Create(Path.Combine(folder, name + ".png"));
         encoder.Save(stream);
+    }
+
+    /// <summary>
+    /// Shows <paramref name="window"/> off screen at exactly the requested size.
+    /// Windows normally caps a window at the size of the screen
+    /// (WM_GETMINMAXINFO), and build servers have small screens, so without this
+    /// a 2560x1400 layout test would quietly run at 1024x768.
+    /// </summary>
+    public static void ShowAtSize(Window window, double width, double height)
+    {
+        window.WindowState = WindowState.Normal;
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+        window.Left = -20000;
+        window.Top = 0;
+        window.ShowInTaskbar = false;
+        window.SourceInitialized += (_, _) =>
+            HwndSource.FromHwnd(new WindowInteropHelper(window).Handle)?.AddHook(AllowAnyTrackSize);
+
+        // The window is created before the hook exists, so size it only once it is shown.
+        window.Width = 1000;
+        window.Height = 600;
+        window.Show();
+        window.Width = width;
+        window.Height = height;
+        window.UpdateLayout();
+    }
+
+    private static IntPtr AllowAnyTrackSize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WmGetMinMaxInfo = 0x0024;
+        if (msg == WmGetMinMaxInfo)
+        {
+            MinMaxInfo info = Marshal.PtrToStructure<MinMaxInfo>(lParam);
+            info.MaxTrackSize = new Point32 { X = 16000, Y = 16000 };
+            Marshal.StructureToPtr(info, lParam, false);
+        }
+
+        return IntPtr.Zero;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Point32
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MinMaxInfo
+    {
+        public Point32 Reserved;
+        public Point32 MaxSize;
+        public Point32 MaxPosition;
+        public Point32 MinTrackSize;
+        public Point32 MaxTrackSize;
     }
 
     private static Dispatcher Start()
