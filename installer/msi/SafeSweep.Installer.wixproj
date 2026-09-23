@@ -8,7 +8,8 @@
     <OutputType>Package</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
     <OutputName>SafeSweep-x64</OutputName>
-    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <!-- VersionPrefix comes from Directory.Build.props, the single place the version is set. -->
+    <ProductVersion Condition="'$(ProductVersion)' == ''">$(VersionPrefix)</ProductVersion>
     <AppPublishDir Condition="'$(AppPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\app\</AppPublishDir>
     <!-- A -p: value cannot be reassigned, so the normalised copy gets its own name. -->
     <AppPayloadDir>$([MSBuild]::EnsureTrailingSlash('$(AppPublishDir)'))</AppPayloadDir>

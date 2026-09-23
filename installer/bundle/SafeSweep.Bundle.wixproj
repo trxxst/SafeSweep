@@ -4,7 +4,8 @@
     <OutputType>Bundle</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
     <OutputName>SafeSweep-Setup-x64</OutputName>
-    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <!-- VersionPrefix comes from Directory.Build.props, the single place the version is set. -->
+    <ProductVersion Condition="'$(ProductVersion)' == ''">$(VersionPrefix)</ProductVersion>
     <MsiPath Condition="'$(MsiPath)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\msi\SafeSweep-x64.msi</MsiPath>
     <DefineConstants>ProductVersion=$(ProductVersion);MsiPath=$(MsiPath)</DefineConstants>
   </PropertyGroup>

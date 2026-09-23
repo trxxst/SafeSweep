@@ -4,9 +4,10 @@
     product versions, the version shown in the app (Settings > About, sidebar),
     the installer and the GitHub release tag (v$(VersionPrefix)) all come from
     here. CI refuses to publish a tag that does not match.
+    Change it with scripts/bump-version.ps1, not by hand (see docs/RELEASING.md).
   -->
   <PropertyGroup>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
     <FileVersion>$(VersionPrefix).0</FileVersion>
     <!-- Keep the displayed version clean (no "+commit" suffix). -->

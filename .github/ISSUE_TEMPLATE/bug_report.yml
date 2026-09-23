@@ -14,8 +14,8 @@ body:
     id: version
     attributes:
       label: SafeSweep version
-      description: Shown at the bottom of the sidebar, for example v1.0.0.
-      placeholder: v1.0.0
+      description: Shown at the bottom of the sidebar, for example v1.1.0.
+      placeholder: v1.1.0
     validations:
       required: true
   - type: dropdown

@@ -89,6 +89,16 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
 if ($ExpectedVersion -and $ExpectedVersion -ne $Version) {
     throw "Version mismatch: Directory.Build.props says $Version but the release tag says $ExpectedVersion."
 }
+
+# A version is only complete with its changelog entry and release notes;
+# scripts/bump-version.ps1 creates both.
+$changelogText = [System.IO.File]::ReadAllText((Join-Path $Root 'CHANGELOG.md'))
+if ($changelogText -notmatch "(?m)^## \[$([regex]::Escape($Version))\]") {
+    throw "CHANGELOG.md has no section for $Version. Raise the version with scripts/bump-version.ps1."
+}
+if (-not (Test-Path (Join-Path $Root "docs\release-notes\v$Version.md"))) {
+    throw "docs/release-notes/v$Version.md is missing. Raise the version with scripts/bump-version.ps1."
+}
 Write-Step "Building SafeSweep $Version ($Configuration, $Runtime)"
 
 Invoke-Checked 'dotnet' @('--version')

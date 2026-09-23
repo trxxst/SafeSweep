@@ -70,6 +70,13 @@ for you. The full release build, including the installer, is
   CommunityToolkit.Mvvm.
 - Comments explain *why*, especially for anything related to safety.
 
+## Versions and releases
+
+Every change to the app gets a new version number. Describe user-visible changes under
+`## [Unreleased]` in `CHANGELOG.md`; the maintainer raises the version with
+`scripts/bump-version.ps1` when releasing. The whole process is in
+[docs/RELEASING.md](docs/RELEASING.md).
+
 ## Commit messages and pull requests
 
 - Keep commits focused; describe what changed and why.
